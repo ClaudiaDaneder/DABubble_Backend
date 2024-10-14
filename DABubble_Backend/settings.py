@@ -25,17 +25,37 @@ SECRET_KEY = 'django-insecure-*-unel36fdbngk)n9gdtf(!62jdrx86f%8@rp*f)gb2_otftqd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1'
+]
 
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:4200'
+]
 
+CORS_ALLOW_CREDENTIALS = True
 # Application definition
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:4200",  # Your Angular dev server
+    # Add your production URL when you deploy
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+
+# Ensure the CSRF cookie is sent with every response
+CSRF_COOKIE_HTTPONLY = False
 
 INSTALLED_APPS = [
     'daphne',
     'users',
     'chat',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_extensions',
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +65,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -130,3 +151,32 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+
+AUTHENTICATION_BACKENDS = [
+    'users.backend.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}

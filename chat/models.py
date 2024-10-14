@@ -8,7 +8,7 @@ class Channel(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='channels_created')
     title = models.CharField(max_length=50)
     description = models.TextField(blank=True, null=True)
-    members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='channels_member_of')
+    members = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='channels')
 
     def __str__(self):
         return self.title
@@ -25,13 +25,14 @@ class Message(models.Model):
     reply_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='thread_messages')
     edited_at = models.DateTimeField(null=True, blank=True)
 
+
     def __str__(self):
         return f"{self.sender} to {self.recipient_type} at {self.timestamp}"
 
 class Reaction(models.Model):
     emoji_name = models.CharField(max_length=20)
     reacted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='user_reactions')
-    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='reactions')
 
     class Meta:
         unique_together = ('reacted_by', 'message', 'emoji_name')

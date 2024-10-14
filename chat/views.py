@@ -8,17 +8,23 @@ from django.contrib.auth import get_user_model
 
 from chat.models import Channel, Message, Reaction
 from chat.permissions import IsChannelMember
-from chat.serializers import ChannelSerializer, MessageSerializer, ReactionSerializer
+from chat.serializers import ChannelSerializer, MessageSerializer, ReactionCreateSerializer, ReactionSerializer
 from users.serializers import UserSerializer
 
 User = get_user_model()
 
 class ChannelViewSet(viewsets.ModelViewSet):
     serializer_class = ChannelSerializer
-    # permission_classes = [permissions.IsAuthenticated, IsChannelMember]
+    queryset = Channel.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsChannelMember]
+
+    USER_SPECIFIC_CHANNELS = True
 
     def get_queryset(self):
-        return self.request.user.channels_member_of.all()
+        if self.USER_SPECIFIC_CHANNELS:
+            return self.request.user.channels.all()
+        else:
+            return self.queryset
 
     def perform_create(self, serializer):
         channel = serializer.save(created_by=self.request.user)
@@ -57,7 +63,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsChannelMember]
 
     def get_queryset(self):
-        return Message.objects.filter(channel__members=self.request.user)
+        return Message.objects.filter(recipient_channel__members=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(sender=self.request.user)
@@ -81,11 +87,17 @@ class MessageViewSet(viewsets.ModelViewSet):
 
 class ReactionViewSet(viewsets.ModelViewSet):
     queryset = Reaction.objects.all()
-    serializer_class = ReactionSerializer
-    # permission_classes = [permissions.IsAuthenticated, IsChannelMember]
+    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-         return Reaction.objects.filter(message__channel__members=self.request.user)
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return ReactionCreateSerializer
+        return ReactionSerializer
 
     def perform_create(self, serializer):
         serializer.save(reacted_by=self.request.user)
+
+    def get_object(self):
+        obj = super().get_object()
+        self.check_object_permissions(self.request, obj.message.recipient_channel)
+        return obj
