@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from chat.models import Channel, Reaction, Message
 from django.contrib.auth import get_user_model
@@ -32,3 +33,11 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_reactions(self, obj):
         reactions = Reaction.objects.filter(message=obj)
         return ReactionSerializer(reactions, many=True).data
+
+    def update(self, instance, validated_data):
+        content_changed = 'content' in validated_data and validated_data['content'] != instance.content
+        instance = super().update(instance, validated_data)
+        if content_changed:
+            instance.edited_at = timezone.now()
+            instance.save()
+        return instance

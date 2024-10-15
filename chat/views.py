@@ -63,7 +63,21 @@ class MessageViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsChannelMember]
 
     def get_queryset(self):
-        return Message.objects.filter(recipient_channel__members=self.request.user)
+        queryset = Message.objects.filter(Q(recipient_channel__members=self.request.user) | Q(sender=self.request.user))
+
+        recipient_channel = self.request.query_params.get('recipient_channel')
+        if recipient_channel:
+            queryset = queryset.filter(recipient_channel_id=recipient_channel)
+
+        recipient_user = self.request.query_params.get('recipient_user')
+        if recipient_user:
+            queryset = queryset.filter(recipient_user_id=recipient_user)
+
+        recipient_type = self.request.query_params.get('recipient_type')
+        if recipient_type:
+            queryset = queryset.filter(recipient_type=recipient_type)
+
+        return queryset.order_by('timestamp')
 
     def perform_create(self, serializer):
         serializer.save(sender=self.request.user)
@@ -82,7 +96,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_update(self, serializer):
-        serializer.save(edited_at=timezone.now())
+        serializer.save()
 
 
 class ReactionViewSet(viewsets.ModelViewSet):
@@ -96,6 +110,7 @@ class ReactionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(reacted_by=self.request.user)
+
 
     def get_object(self):
         obj = super().get_object()

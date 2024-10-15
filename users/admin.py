@@ -10,6 +10,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password',)}),
         ('Personal Information', {'fields': ('first_name', 'last_name',)}),
+        ('Avatar', {'fields': ('image_url',)}),
         ('Permissions', {'fields': ('is_active', 'is_staff',)}),
     )
     add_fieldsets = (
