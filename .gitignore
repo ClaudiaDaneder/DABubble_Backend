@@ -1,0 +1,26 @@
+*.pem
+*.ppk
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.key
+.ssh/
+.env
+*.env
+__pycache__/
+**/__pycache__/
+*.pyc
+env/
+# Database
+db.sqlite3
+*.sqlite3
+*.db
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.vscode/
+db.sqlite3
+*.sqlite3
